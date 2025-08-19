@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fun & Games! 🎮</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <style>
+        /* Custom styles for games and gradients */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); /* Warm, soft yellow gradient */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            color: #4a4a4a;
+            overflow-x: hidden; /* Prevent horizontal scroll due to animations */
+            position: relative; /* For absolutely positioned particles */
+        }
+
+        /* Animated background particles */
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            animation: floatAndFadeParticle 15s infinite ease-in-out;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+        }
+
+        .particle:nth-child(1) { width: 15px; height: 15px; top: 10%; left: 5%; animation-delay: 0s; }
+        .particle:nth-child(2) { width: 10px; height: 10px; top: 30%; left: 20%; animation-delay: 2s; }
+        .particle:nth-child(3) { width: 20px; height: 20px; top: 50%; left: 80%; animation-delay: 4s; }
+        .particle:nth-child(4) { width: 12px; height: 12px; top: 70%; left: 15%; animation-delay: 6s; }
+        .particle:nth-child(5) { width: 18px; height: 18px; top: 20%; left: 90%; animation-delay: 8s; }
+        .particle:nth-child(6) { width: 8px; height: 8px; top: 60%; left: 40%; animation-delay: 10s; }
+
+        @keyframes floatAndFadeParticle {
+            0% { transform: translateY(0) translateX(0) scale(0.5); opacity: 0.5; }
+            50% { transform: translateY(-50vh) translateX(20vw) scale(1); opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(0) scale(0.5); opacity: 0; }
+        }
+
+        .container {
+            backdrop-filter: blur(15px); /* More blur for stunning effect */
+            background-color: rgba(255, 255, 255, 0.85); /* Less transparent */
+            border-radius: 2rem; /* More rounded */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); /* Stronger shadow */
+            padding: 2.5rem; /* Adjusted padding for better responsiveness */
+            text-align: center;
+            max-width: 52rem; /* Slightly wider container */
+            width: 100%;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(50px);
+            position: relative; /* To contain its own animations */
+            z-index: 1; /* Above background particles */
+            box-sizing: border-box; /* Include padding in width/height */
+        }
+
+        /* Memory Game Styles */
+        .memory-game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 columns for cards */
+            grid-gap: 0.75rem; /* Gap between cards */
+            padding: 1rem;
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%); /* Soft red gradient */
+            border-radius: 1.5rem;
+            border: 5px solid #fb7185;
+            box-shadow: inset 0 0 15px rgba(255, 105, 180, 0.4), 0 0 20px rgba(255, 105, 180, 0.3);
+            max-width: 600px; /* Max width for the board */
+            width: 100%;
+            margin: 2rem auto;
+            aspect-ratio: 1 / 1; /* Keep board square */
+        }
+
+        .memory-card {
+            background-color: #f7e2e7; /* Card back color */
+            border-radius: 0.75rem;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            height: 100%; /* Fill grid cell */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .memory-card.matched {
+            opacity: 0; /* Fade out matched cards */
+            pointer-events: none;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .memory-card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em; /* Icon size */
+            border-radius: 0.75rem;
+        }
+
+        .memory-card-front {
+            background-color: #fff;
+            color: #ef4444; /* Red for icons */
+            transform: rotateY(180deg);
+        }
+
+        .memory-card-back {
+            background: linear-gradient(45deg, #fbcfe8, #f472b6); /* Pink gradient for back */
+            color: white;
+            font-size: 1.5em; /* Text size for back */
+        }
+
+        .message-box {
+            background-color: #fff;
+            padding: 1.25rem; /* More padding */
+            border-radius: 1rem; /* More rounded */
+            margin-top: 1.5rem;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 2rem; /* More space between buttons */
+            margin-top: 3rem; /* More margin */
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+        }
+
+        .nav-buttons a, #next-quiz-btn {
+            background: linear-gradient(45deg, #f97316, #ea580c); /* Vibrant orange gradient */
+            color: white;
+            font-weight: bold;
+            padding: 0.85rem 2rem; /* Adjusted padding */
+            border-radius: 9999px; /* rounded-full */
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s ease-in-out;
+            transform: scale(1);
+            border: none; /* Remove default button border */
+        }
+
+        .nav-buttons a:hover, #next-quiz-btn:hover {
+            transform: scale(1.08); /* More pronounced hover effect */
+            box-shadow: 0 15px 30px -8px rgba(0, 0, 0, 0.35);
+            background: linear-gradient(45deg, #fb923c, #f97316); /* Lighter on hover */
+        }
+
+        /* Quiz specific styles */
+        .quiz-container {
+            border: 3px solid #a78bfa; /* Thicker purple border */
+            background: linear-gradient(135deg, #f5edfc 0%, #e8dff9 100%); /* Soft purple gradient */
+            padding: 2.5rem; /* More padding */
+            border-radius: 1.5rem; /* More rounded */
+            margin-top: 2.5rem; /* More margin */
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.15);
+        }
+
+        .quiz-option {
+            background: linear-gradient(45deg, #c4b5fd, #a78bfa); /* Purple gradient */
+            color: white;
+            padding: 0.9rem 1.8rem; /* Larger options */
+            border-radius: 9999px; /* rounded-full */
+            margin: 0.75rem; /* More space */
+            cursor: pointer;
+            transition: all 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: none;
+        }
+
+        .quiz-option:hover {
+            background: linear-gradient(45deg, #a78bfa, #8b5cf6); /* Darker purple on hover */
+            transform: scale(1.08);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.2);
+        }
+
+        .quiz-option:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            background: #d1d5db; /* Grey out disabled */
+        }
+
+        .quiz-feedback {
+            font-weight: bold;
+            margin-top: 1.5rem;
+            font-size: 1.125rem; /* text-lg */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .container {
+                padding: 1.5rem; /* Reduce padding on small screens */
+                border-radius: 1.5rem;
+            }
+            h1 {
+                font-size: 2rem; /* Smaller heading on mobile */
+            }
+            .text-lg {
+                font-size: 0.9rem;
+            }
+            .memory-game-board {
+                grid-gap: 0.5rem;
+                padding: 0.75rem;
+                max-width: 95%; /* Allow board to take more width */
+            }
+            .memory-card-face {
+                font-size: 2em; /* Adjust card icon size */
+            }
+            .memory-card-back {
+                font-size: 1.2em; /* Adjust card back text size */
+            }
+            .quiz-container {
+                padding: 1.5rem;
+                border-radius: 1rem;
+            }
+            .quiz-option {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+                margin: 0.4rem;
+            }
+            .nav-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .nav-buttons a, #next-quiz-btn {
+                padding: 0.7rem 1.5rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background particles for stunning effect -->
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+
+    <div class="container" id="main-container">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-amber-700 mb-4 tracking-tight">
+            Time for Some Fun! 🥳
+        </h1>
+        <p class="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
+            Let's play a little game and test your memory about us!
+        </p>
+
+        <!-- Memory Match Game -->
+        <div class="game-section mb-12">
+            <h2 class="text-3xl font-bold text-pink-600 mb-4">Memory Challenge! Match the Symbols!</h2>
+            <p class="text-md text-gray-600 mb-2">Find all the matching pairs!</p>
+            <div class="memory-game-board" id="memory-game-board">
+                <!-- Cards will be injected here by JavaScript -->
+            </div>
+            <div class="message-box">
+                <p id="game-message" class="text-lg font-semibold text-gray-800">
+                    Pairs Found: <span id="pairs-found">0</span> / <span id="total-pairs"></span>
+                </p>
+                <button id="reset-game-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-md mt-4 transition-all duration-300 transform hover:scale-105">
+                    Restart Game
+                </button>
+            </div>
+        </div>
+
+        <!-- Mini Quiz Section -->
+        <div class="quiz-section">
+            <h2 class="text-3xl font-bold text-violet-700 mb-4">How Well Do You Remember? 🤔</h2>
+            <div class="quiz-container" id="quiz-container">
+                <p id="quiz-question" class="text-xl font-semibold mb-4 text-violet-900">Loading question...</p>
+                <div id="quiz-options" class="flex flex-wrap justify-center">
+                    <!-- Options will be injected here -->
+                </div>
+                <p id="quiz-feedback" class="quiz-feedback"></p>
+            </div>
+            <button id="next-quiz-btn" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-full shadow-md mt-4 transition-all duration-300 transform hover:scale-105 opacity-0">Next Question</button>
+        </div>
+    </div>
+
+    <div class="nav-buttons">
+        <a href="timeline.html" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
+            ← Our Journey
+        </a>
+        <a href="messages.html" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
+            Next Surprise! →
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContainer = document.getElementById('main-container');
+            const memoryGameBoard = document.getElementById('memory-game-board');
+            const pairsFoundDisplay = document.getElementById('pairs-found');
+            const totalPairsDisplay = document.getElementById('total-pairs');
+            const resetGameBtn = document.getElementById('reset-game-btn');
+
+            const quizQuestion = document.getElementById('quiz-question');
+            const quizOptions = document.getElementById('quiz-options');
+            const quizFeedback = document.getElementById('quiz-feedback');
+            const nextQuizBtn = document.getElementById('next-quiz-btn');
+
+            // --- Initial Fade-In Animation for main container ---
+            gsap.fromTo(mainContainer, { opacity: 0, y: 50, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: "power2.out" });
+
+            // --- Memory Game Logic ---
+            const cardIcons = ['❤️', '✨', '🎶', '🌟', '💖', '💐', '🎁', '💌']; // 8 unique icons
+            let cards = [];
+            let flippedCards = [];
+            let matchedPairs = 0;
+            let lockBoard = false; // To prevent rapid clicks during a match check
+
+            const initializeGame = () => {
+                memoryGameBoard.innerHTML = ''; // Clear existing cards
+                flippedCards = [];
+                matchedPairs = 0;
+                lockBoard = false;
+                pairsFoundDisplay.textContent = 0;
+
+                const gamePairs = cardIcons.slice(0, 6); // Use 6 pairs for a 4x3 board (12 cards)
+                cards = [...gamePairs, ...gamePairs]; // Duplicate for pairs
+                shuffleCards();
+                totalPairsDisplay.textContent = gamePairs.length; // Update total pairs display
+
+                cards.forEach((icon, index) => {
+                    const card = document.createElement('div');
+                    card.classList.add('memory-card');
+                    card.dataset.icon = icon;
+                    card.dataset.index = index; // Unique index for each card element
+
+                    const cardFront = document.createElement('div');
+                    cardFront.classList.add('memory-card-face', 'memory-card-front');
+                    cardFront.textContent = icon;
+
+                    const cardBack = document.createElement('div');
+                    cardBack.classList.add('memory-card-face', 'memory-card-back');
+                    cardBack.textContent = '?'; // Or a small heart, etc.
+
+                    card.appendChild(cardFront);
+                    card.appendChild(cardBack);
+                    memoryGameBoard.appendChild(card);
+
+                    card.addEventListener('click', flipCard);
+                });
+
+                // Animate cards in after a slight delay
+                gsap.from(".memory-card", {
+                    opacity: 0,
+                    scale: 0,
+                    rotationY: 180,
+                    duration: 0.6,
+                    stagger: 0.05,
+                    ease: "back.out(1.7)",
+                    delay: 0.5
+                });
+            };
+
+            const shuffleCards = () => {
+                for (let i = cards.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [cards[i], cards[j]] = [cards[j], cards[i]];
+                }
+            };
+
+            const flipCard = (event) => {
+                const clickedCard = event.currentTarget;
+
+                if (lockBoard || clickedCard.classList.contains('flipped') || clickedCard.classList.contains('matched')) {
+                    return; // Ignore if board is locked, card is already flipped, or matched
+                }
+
+                gsap.to(clickedCard, { rotationY: 180, duration: 0.5, ease: "power2.out" });
+                clickedCard.classList.add('flipped');
+                flippedCards.push(clickedCard);
+
+                if (flippedCards.length === 2) {
+                    lockBoard = true; // Lock board after two cards are flipped
+                    checkForMatch();
+                }
+            };
+
+            const checkForMatch = () => {
+                const [card1, card2] = flippedCards;
+                const isMatch = card1.dataset.icon === card2.dataset.icon;
+
+                if (isMatch) {
+                    disableCards();
+                } else {
+                    unflipCards();
+                }
+            };
+
+            const disableCards = () => {
+                const [card1, card2] = flippedCards;
+                gsap.to([card1, card2], {
+                    opacity: 0,
+                    scale: 0.1,
+                    duration: 0.5,
+                    delay: 0.5, // Delay before fading out
+                    onComplete: () => {
+                        card1.classList.add('matched');
+                        card2.classList.add('matched');
+                        card1.removeEventListener('click', flipCard);
+                        card2.removeEventListener('click', flipCard);
+                        resetBoard();
+                        matchedPairs++;
+                        pairsFoundDisplay.textContent = matchedPairs;
+                        if (matchedPairs === (cards.length / 2)) {
+                            // Game over! All pairs found
+                            gameWonAnimation();
+                        }
+                    }
+                });
+            };
+
+            const unflipCards = () => {
+                const [card1, card2] = flippedCards;
+                gsap.to([card1, card2], {
+                    rotationY: 0,
+                    duration: 0.5,
+                    delay: 0.8, // Short delay before unfliping
+                    ease: "power2.out",
+                    onComplete: () => {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        resetBoard();
+                    }
+                });
+            };
+
+            const resetBoard = () => {
+                flippedCards = [];
+                lockBoard = false;
+            };
+
+            const gameWonAnimation = () => {
+                gameMessage.textContent = "You found all the pairs! Amazing memory! 🎉";
+                gsap.fromTo(gameMessage, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.8, ease: "elastic.out(1, 0.5)" });
+                // Automatically show quiz next button after winning
+                gsap.to(nextQuizBtn, {opacity: 1, y: 0, duration: 0.5, delay: 1});
+            };
+
+            resetGameBtn.addEventListener('click', () => {
+                gsap.to(memoryGameBoard.children, {
+                    opacity: 0, scale: 0, duration: 0.4, stagger: 0.03, onComplete: initializeGame
+                });
+            });
+
+            initializeGame(); // Start the memory game on load
+
+            // --- Mini Quiz Logic (retained from previous version) ---
+            const quizData = [
+                {
+                    question: "What's one thing I secretly adore about you?",
+                    options: ["Your laugh", "Your kindness", "Your determination", "All of the above"],
+                    answer: "All of the above"
+                },
+                {
+                    question: "If we could revisit any single moment from our past, which would I choose?",
+                    options: ["Our first date", "That spontaneous adventure", "A quiet evening together", "The day we truly connected"],
+                    answer: "The day we truly connected"
+                },
+                {
+                    question: "What's the best feeling in the world when I'm with you?",
+                    options: ["Holding your hand", "Hearing your voice", "Making you smile", "Just being beside you"],
+                    answer: "Just being beside you"
+                }
+            ];
+
+            let currentQuizQuestionIndex = 0;
+
+            const loadQuizQuestion = () => {
+                if (currentQuizQuestionIndex < quizData.length) {
+                    const data = quizData[currentQuizQuestionIndex];
+                    // Animate out current question and options
+                    gsap.to([quizQuestion, quizOptions, quizFeedback], {
+                        opacity: 0, y: -20, duration: 0.4, onComplete: () => {
+                            quizQuestion.textContent = data.question;
+                            quizOptions.innerHTML = ''; // Clear previous options
+                            quizFeedback.textContent = '';
+                            gsap.to(nextQuizBtn, {opacity: 0, duration: 0.3}); // Hide next button
+
+                            data.options.forEach(option => {
+                                const button = document.createElement('button');
+                                button.classList.add('quiz-option');
+                                button.textContent = option;
+                                button.addEventListener('click', () => checkAnswer(option, data.answer));
+                                quizOptions.appendChild(button);
+                                gsap.from(button, { opacity: 0, y: 20, duration: 0.5, ease: "back.out(1.7)", delay: 0.1 * Array.from(quizOptions.children).indexOf(button) });
+                            });
+                            // Animate in new question and options
+                            gsap.to([quizQuestion, quizOptions], { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 0.2 });
+                        }
+                    });
+
+                } else {
+                    quizQuestion.textContent = "You've answered all the questions! Great job reminiscing!";
+                    quizOptions.innerHTML = '';
+                    quizFeedback.textContent = 'Hope you had fun with these little memories! ❤️';
+                    gsap.to(quizFeedback, {opacity: 1, y: 0, duration: 0.5, delay: 0.5});
+                    gsap.to(nextQuizBtn, {opacity: 0, duration: 0.3});
+                }
+            };
+
+            const checkAnswer = (selectedOption, correctAnswer) => {
+                // Disable all options after selection
+                Array.from(quizOptions.children).forEach(button => {
+                    button.disabled = true;
+                    if (button.textContent === correctAnswer) {
+                        button.style.backgroundColor = '#4CAF50'; // Green for correct
+                        gsap.to(button, { scale: 1.1, duration: 0.2 }); // Slight bounce for correct
+                    } else if (button.textContent === selectedOption) {
+                        button.style.backgroundColor = '#f44336'; // Red for incorrect
+                        gsap.to(button, { x: -5, yoyo: true, repeat: 3, duration: 0.1 }); // Shake for incorrect
+                    }
+                });
+
+                if (selectedOption === correctAnswer) {
+                    quizFeedback.textContent = "That's right! You nailed it! 🎉";
+                    quizFeedback.style.color = '#10b981'; // Green
+                } else {
+                    quizFeedback.textContent = `Not quite! The answer was: "${correctAnswer}" 😅`;
+                    quizFeedback.style.color = '#ef4444'; // Red
+                }
+                gsap.to(quizFeedback, {opacity: 1, y: 0, duration: 0.5, delay: 0.2});
+                gsap.to(nextQuizBtn, {opacity: 1, duration: 0.5, delay: 0.8}); // Show next button
+            };
+
+            nextQuizBtn.addEventListener('click', () => {
+                currentQuizQuestionIndex++;
+                loadQuizQuestion();
+            });
+
+            loadQuizQuestion(); // Load the first quiz question
+
+            // --- Navigation transitions ---
+            document.querySelectorAll('.nav-buttons a').forEach(link => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const href = link.getAttribute('href');
+                    gsap.to([mainContainer, ...document.querySelectorAll('.memory-card'), ...document.querySelectorAll('.particle')], {
+                        opacity: 0,
+                        y: -50,
+                        scale: 0.8,
+                        duration: 0.7, /* Slightly longer exit animation */
+                        ease: "power1.in",
+                        onComplete: () => {
+                            window.location.href = href;
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

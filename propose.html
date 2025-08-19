@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Big Question! 💍</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/MotionPathPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/TextPlugin.min.js"></script> <!-- For text animation -->
+    <style>
+        /* Custom styles for proposal page */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #d8436e 0%, #fa719b 100%); /* Deeper, richer pink/red gradient */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            color: white;
+            overflow: hidden; /* For falling elements and particles */
+            position: relative; /* For absolutely positioned particles */
+            isolation: isolate; /* Ensures z-index behaves correctly with backdrop-filter */
+        }
+
+        /* Animated background sparkles/light particles */
+        .sparkle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: twinkle var(--duration) infinite ease-in-out var(--delay);
+            z-index: 0;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { transform: translateY(0) translateX(0) scale(var(--size-start)); opacity: 0; }
+            10% { opacity: 0.9; }
+            50% { transform: translateY(calc(var(--float-distance) * -1)) translateX(var(--float-drift)) scale(var(--size-end)); opacity: 1; }
+            90% { opacity: 0.9; }
+        }
+
+        .container {
+            backdrop-filter: blur(25px); /* Even more blur for depth */
+            background-color: rgba(255, 255, 255, 0.05); /* Even more subtle transparency */
+            border-radius: 3rem; /* Even more rounded */
+            box-shadow: 0 50px 100px -25px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(255,255,255,0.1); /* Stronger outer shadow, subtle inner glow */
+            padding: 4.5rem; /* Even more generous padding */
+            text-align: center;
+            max-width: 65rem; /* Wider for grand presence */
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transform: scale(0.8); /* Deeper initial scale */
+            position: relative;
+            z-index: 10;
+            border: 3px solid rgba(255, 255, 255, 0.2); /* Slightly thicker, more transparent border */
+        }
+
+        .pre-proposal-text {
+            font-size: 2.75rem; /* text-4xl equivalent */
+            font-weight: bold;
+            color: #ffefff; /* Lighter, almost white pink */
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            opacity: 0; /* Initial state for GSAP animation */
+        }
+
+        .proposal-text {
+            font-size: 5.5rem; /* text-8xl equivalent for grand impact */
+            font-weight: extrabold;
+            margin-bottom: 3.5rem; /* More space */
+            line-height: 1.2;
+            color: #ffffff; /* Pure white for max luminosity */
+            /* Text shadow will be handled by GSAP */
+            display: inline-block; /* Essential for splitting letters */
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 2.8rem; /* More space between buttons */
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+            justify-content: center;
+            width: 100%; /* Ensure full width for centering */
+        }
+
+        .action-button {
+            font-size: 1.85rem; /* Even larger font for buttons */
+            font-weight: bold;
+            padding: 1.6rem 3.2rem; /* More generous padding */
+            border-radius: 9999px; /* Rounded pill shape */
+            box-shadow: 0 18px 36px -9px rgba(0, 0, 0, 0.45); /* Stronger shadow */
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncier transition */
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            flex-grow: 1; /* Allow buttons to grow */
+            max-width: 320px; /* Slightly wider max width */
+            outline: none; /* Remove default focus outline */
+        }
+
+        .action-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: rgba(255, 255, 255, 0.25); /* Stronger ripple effect */
+            border-radius: 50%;
+            transition: all 0.75s ease-out;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: -1;
+        }
+
+        .action-button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0;
+        }
+
+        .yes-button {
+            background: linear-gradient(45deg, #ff007f, #ff33a1); /* Hotter pink */
+            color: white;
+            border: 3px solid #fecdd3; /* Thicker, lighter border */
+        }
+        .yes-button:hover {
+            transform: scale(1.18); /* Even more pronounced scale */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
+        }
+
+        .no-button {
+            background: linear-gradient(45deg, #7b3fe6, #9c4ff8); /* Deeper, more captivating purple gradient */
+            color: white;
+            border: 3px solid #e9d5ff; /* Thicker, lighter border */
+        }
+        .no-button:hover {
+            transform: scale(1.1); /* Slightly more pronounced scale, but still runs away */
+            box-shadow: 0 18px 36px -9px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Falling element animation - more varied and abundant */
+        .falling-element {
+            position: absolute;
+            font-size: 3.2em; /* Even larger size */
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Confetti animation for "Yes" - more vibrant and numerous */
+        .confetti {
+            position: absolute;
+            width: 14px; /* Even larger confetti */
+            height: 14px;
+            background-color: transparent;
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20; /* Above everything */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 2.5rem;
+                border-radius: 2rem;
+                width: 95%;
+                margin-top: 1rem; /* Adjust margin for mobile */
+            }
+            .pre-proposal-text {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+            }
+            .proposal-text {
+                font-size: 3.5rem; /* text-6xl equivalent */
+                margin-bottom: 2.5rem;
+            }
+            .action-button {
+                font-size: 1.3rem;
+                padding: 1.1rem 2.2rem;
+                max-width: none;
+            }
+            .buttons-container {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .post-proposal-nav a {
+                padding: 1rem 2rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background sparkles for stunning effect -->
+    <div class="sparkle" style="--size-start:0.5; --size-end:1.2; --duration:18s; --delay:0s; --float-distance:90vh; --float-drift:25vw;"></div>
+    <div class="sparkle" style="--size-start:0.7; --size-end:1.5; --duration:20s; --delay:2s; --float-distance:80vh; --float-drift:-20vw;"></div>
+    <div class="sparkle" style="--size-start:0.6; --size-end:1.3; --duration:16s; --delay:4s; --float-distance:95vh; --float-drift:15vw;"></div>
+    <div class="sparkle" style="--size-start:0.9; --size-end:1.8; --duration:22s; --delay:6s; --float-distance:85vh; --float-drift:-30vw;"></div>
+    <div class="sparkle" style="--size-start:0.5; --size-end:1.1; --duration:19s; --delay:8s; --float-distance:70vh; --float-drift:10vw;"></div>
+    <div class="sparkle" style="--size-start:0.8; --size-end:1.6; --duration:17s; --delay:10s; --float-distance:100vh; --float-drift:-5vw;"></div>
+    <div class="sparkle" style="--size-start:0.7; --size-end:1.4; --duration:16s; --delay:12s; --float-distance:78vh; --float-drift:22vw;"></div>
+    <div class="sparkle" style="--size-start:0.6; --size-end:1.2; --duration:15s; --delay:14s; --float-distance:88vh; --float-drift:-18vw;"></div>
+    <div class="sparkle" style="--size-start:0.9; --size-end:1.7; --duration:21s; --delay:1s; --float-distance:92vh; --float-drift:10vw;"></div>
+    <div class="sparkle" style="--size-start:0.5; --size-end:1.0; --duration:17s; --delay:5s; --float-distance:85vh; --float-drift:-5vw;"></div>
+    <div class="sparkle" style="--size-start:0.8; --size-end:1.5; --duration:19s; --delay:9s; --float-distance:75vh; --float-drift:30vw;"></div>
+    <div class="sparkle" style="--size-start:0.6; --size-end:1.3; --duration:16s; --delay:13s; --float-distance:90vh; --float-drift:-20vw;"></div>
+
+
+    <div class="container" id="main-container">
+        <p class="pre-proposal-text" id="pre-proposal-text">
+            My Love, My Everything...
+        </p>
+        <h1 class="proposal-text" id="proposal-text">
+            Will You be my valentine? 💖
+        </h1>
+
+        <div class="buttons-container">
+            <button id="yesButton" class="action-button yes-button">
+                Yes! Absolutely! ✨
+            </button>
+            <button id="noButton" class="action-button no-button">
+                No 😅 (Just kidding!)
+            </button>
+        </div>
+
+        <div id="post-proposal-nav" class="post-proposal-nav">
+            <a href="index.html" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
+                Go Back to the Beginning 🏡
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContainer = document.getElementById('main-container');
+            const preProposalText = document.getElementById('pre-proposal-text');
+            const proposalText = document.getElementById('proposal-text');
+            const yesButton = document.getElementById('yesButton');
+            const noButton = document.getElementById('noButton');
+            const postProposalNav = document.getElementById('post-proposal-nav');
+
+            gsap.registerPlugin(MotionPathPlugin, TextPlugin); // Register MotionPathPlugin and TextPlugin
+
+            // Wrap each character of the proposal text in a span for individual animation
+            proposalText.innerHTML = proposalText.textContent.split('').map(char => {
+                if (char === ' ') return ' '; // Preserve spaces
+                return `<span>${char}</span>`;
+            }).join('');
+            const proposalChars = proposalText.querySelectorAll('span');
+
+            // --- Initial Fade-In Animation ---
+            gsap.fromTo(mainContainer,
+                { opacity: 0, scale: 0.8, y: 50 },
+                { opacity: 1, scale: 1, y: 0, duration: 1.5, ease: "elastic.out(1, 0.5)" }
+            );
+
+            // --- Pre-Proposal Text Animation ---
+            gsap.fromTo(preProposalText,
+                { opacity: 0, y: -20, scale: 0.9 },
+                { opacity: 1, y: 0, scale: 1, duration: 1, delay: 0.5, ease: "power2.out" }
+            );
+
+
+            // --- Proposal Text Animation (initial reveal and continuous glow) ---
+            const proposalTimeline = gsap.timeline({ repeat: -1, yoyo: true }); // Continuous glow
+            proposalTimeline
+                .from(proposalChars, { // Animate each character
+                    opacity: 0,
+                    y: 20,
+                    scale: 0.8,
+                    rotationX: 90,
+                    transformOrigin: "center center",
+                    stagger: 0.05, // Staggered reveal for each character
+                    ease: "back.out(1.7)",
+                    duration: 0.5,
+                    delay: 1.5 // Delay after container and pre-proposal text entrance
+                })
+                .to(proposalText, { // Animate the text shadow for continuous glow on the whole element
+                    textShadow: "0 0 25px #ffffff, 0 0 50px #ffcc80, 0 0 100px #ffb74d", // Stronger, more vibrant glow
+                    duration: 2,
+                    ease: "power1.inOut"
+                }, ">"); // ">" means to start this immediately after the previous animation finishes
+
+
+            // Animate buttons in
+            gsap.from([yesButton, noButton], { y: 50, opacity: 0, delay: 2.5, duration: 1, ease: "power2.out", stagger: 0.3 });
+
+            // --- Falling Elements Animation (Roses/Hearts/Sparkles) ---
+            const fallingEmojis = ['🌹', '❤️', '✨', '🌟', '💫']; // More variety
+            const createFallingElement = () => {
+                const element = document.createElement('div');
+                element.classList.add('falling-element');
+                element.innerHTML = fallingEmojis[Math.floor(Math.random() * fallingEmojis.length)];
+                document.body.appendChild(element);
+
+                const startX = Math.random() * window.innerWidth;
+                const duration = 8 + Math.random() * 6; // 8 to 14 seconds
+                const size = 2.5 + Math.random() * 2.5; // Random size 2.5x to 5x
+
+                gsap.set(element, {
+                    x: startX,
+                    y: -50, // Start above viewport
+                    scale: size,
+                    rotation: Math.random() * 360, // Initial random rotation
+                    opacity: 0.6 + Math.random() * 0.4 // Varied opacity
+                });
+
+                gsap.to(element, {
+                    y: window.innerHeight + 100, // Fall off screen
+                    x: `+=${(Math.random() - 0.5) * 400}`, // More drift
+                    rotation: `+=${1080 * (Math.random() > 0.5 ? 1 : -1)}`, // More rotation
+                    opacity: 0,
+                    duration: duration,
+                    ease: "none",
+                    onComplete: () => element.remove()
+                });
+            };
+
+            // Start falling elements periodically (more frequently)
+            setInterval(createFallingElement, 150); // Create a new element every 0.15 seconds
+
+            // Function to show post-proposal navigation
+            const showPostProposalNav = () => {
+                gsap.fromTo(postProposalNav,
+                    { opacity: 0, y: 50, scale: 0.8 },
+                    { opacity: 1, y: 0, scale: 1, pointerEvents: 'auto', duration: 1.2, ease: "elastic.out(1, 0.5)", delay: 1 }
+                );
+            };
+
+            // --- "Yes" Button Logic ---
+            yesButton.addEventListener('click', () => {
+                // Remove the No button for good
+                gsap.to(noButton, { opacity: 0, x: -100, duration: 0.5, ease: "power1.in", onComplete: () => noButton.remove() });
+
+                // Confetti burst! More vibrant and dynamic
+                const createConfettiBurst = (originX, originY) => {
+                    const colors = ['#ff0080', '#ff80bf', '#8000ff', '#bf80ff', '#00e6e6', '#80ffff', '#ffcc00', '#ffeb80', '#ff4d4d', '#ff9999', '#ffccff', '#ff0066', '#cc00ff', '#9933ff'];
+                    for (let i = 0; i < 150; i++) { // Even more confetti pieces
+                        const confetti = document.createElement('div');
+                        confetti.classList.add('confetti');
+                        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                        document.body.appendChild(confetti);
+
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = 150 + Math.random() * 250; // Vary burst distance further
+                        const endX = originX + Math.cos(angle) * distance;
+                        const endY = originY + Math.sin(angle) * distance;
+
+                        gsap.fromTo(confetti,
+                            { x: originX, y: originY, opacity: 1, scale: 1, rotation: Math.random() * 360 },
+                            {
+                                x: endX,
+                                y: endY,
+                                rotation: `+=${1080 + Math.random() * 720}`, // More rotation
+                                opacity: 0,
+                                scale: 0,
+                                duration: 2 + Math.random() * 1.5, // Longer duration for fall
+                                ease: "power2.out",
+                                onComplete: () => confetti.remove(),
+                                motionPath: {
+                                    path: [{ x: originX, y: originY }, { x: endX, y: endY + 300 + Math.random() * 150 }], // Deeper curve downwards
+                                    curviness: 1.7, // Even more pronounced curve
+                                    autoRotate: false
+                                }
+                            }
+                        );
+                    }
+                };
+
+                const buttonRect = yesButton.getBoundingClientRect();
+                createConfettiBurst(buttonRect.left + buttonRect.width / 2, buttonRect.top + buttonRect.height / 2);
+
+                // Stop proposal text animation and change text
+                proposalTimeline.kill(); // Stop the continuous glow
+                gsap.to(proposalChars, { // Animate individual characters out
+                    opacity: 0, y: -20, stagger: 0.02, duration: 0.3, ease: "power1.in",
+                    onComplete: () => {
+                        proposalText.innerHTML = '<span>S</span><span>h</span><span>e</span> <span>S</span><span>a</span><span>i</span><span>d</span> <span>Y</span><span>e</span><span>s</span><span>!</span> ❤️🎉';
+                        const newProposalChars = proposalText.querySelectorAll('span'); // Get new chars
+                        gsap.fromTo(newProposalChars, // Animate new chars in
+                            { opacity: 0, y: 20, scale: 0.8, rotationX: 90, transformOrigin: "center center" },
+                            {
+                                opacity: 1, y: 0, scale: 1, rotationX: 0, duration: 1.2, ease: "elastic.out(1, 0.5)", stagger: 0.05,
+                                onComplete: () => {
+                                    gsap.to(proposalText, { // Start new glow for "She Said Yes!"
+                                        textShadow: "0 0 25px rgba(255,255,255,0.9), 0 0 50px rgba(255,255,255,0.7)",
+                                        duration: 2, repeat: -1, yoyo: true, ease: "power1.inOut"
+                                    });
+                                }
+                            }
+                        );
+                        showPostProposalNav(); // Show navigation after "Yes"
+                    }
+                });
+
+                // Disable yes button and change style
+                yesButton.disabled = true;
+                yesButton.textContent = "You made me the happiest! 🥰";
+                yesButton.classList.remove('yes-button');
+                yesButton.classList.add('bg-green-500', 'hover:bg-green-600', 'cursor-default');
+            });
+
+            // --- "No" Button (Runs Away Playfully) Logic ---
+            let noAttempts = 0;
+            const handleNoButtonInteraction = () => {
+                if (noAttempts < 3) {
+                    const currentX = noButton.offsetLeft;
+                    const currentY = noButton.offsetTop;
+
+                    const containerRect = mainContainer.getBoundingClientRect();
+                    const btnRect = noButton.getBoundingClientRect();
+
+                    let newX, newY;
+                    let attempts = 0;
+                    const padding = 40; // More padding
+
+                    do {
+                        newX = Math.random() * (containerRect.width - btnRect.width - padding * 2) + padding;
+                        newY = Math.random() * (containerRect.height - btnRect.height - padding * 2) + padding;
+                        attempts++;
+                    } while (
+                        Math.abs(newX - (yesButton.offsetLeft + yesButton.offsetWidth / 2)) < (btnRect.width / 2 + yesButton.offsetWidth / 2 + 100) && // More distance from Yes button
+                        Math.abs(newY - (yesButton.offsetTop + yesButton.offsetHeight / 2)) < (btnRect.height / 2 + yesButton.offsetHeight / 2 + 100) &&
+                        attempts < 100
+                    );
+
+                    gsap.to(noButton, {
+                        x: newX - (btnRect.left - containerRect.left), // Relative to container
+                        y: newY - (btnRect.top - containerRect.top),
+                        duration: 0.35, // Slightly faster escape
+                        ease: "power2.out",
+                        rotation: Math.random() * 30 - 15 // More rotation for playfulness
+                    });
+                    noAttempts++;
+                    if (noAttempts === 1) noButton.textContent = "Are you sure? 😉";
+                    if (noAttempts === 2) noButton.textContent = "Really? Think again! 😄";
+                    if (noAttempts === 3) noButton.textContent = "Okay, okay, you can click me now! 😅";
+                }
+            };
+
+            // Desktop: Hover event
+            noButton.addEventListener('mouseenter', handleNoButtonInteraction);
+            // Mobile: Touch event
+            noButton.addEventListener('touchstart', (event) => {
+                event.preventDefault(); // Prevent default touch behavior (e.g., scroll)
+                handleNoButtonInteraction();
+            });
+
+
+            // If "No" is clicked after attempts
+            noButton.addEventListener('click', () => {
+                if (noAttempts >= 3) {
+                    // Stop proposal text animation and change text
+                    proposalTimeline.kill(); // Stop the continuous glow
+                    gsap.to(proposalChars, { // Animate individual characters out
+                        opacity: 0, y: -20, stagger: 0.02, duration: 0.3, ease: "power1.in",
+                        onComplete: () => {
+                            proposalText.innerHTML = '<span>J</span><span>u</span><span>s</span><span>t</span> <span>k</span><span>i</span><span>d</span><span>d</span><span>i</span><span>n</span><span>g</span><span>!</span> <span>Y</span><span>o</span><span>u</span> <span>s</span><span>t</span><span>i</span><span>l</span><span>l</span> <span>h</span><span>a</span><span>v</span><span>e</span> <span>t</span><span>o</span> <span>s</span><span>a</span><span>y</span> <span>Y</span><span>E</span><span>S</span><span>!</span> 😂';
+                            const newProposalChars = proposalText.querySelectorAll('span'); // Get new chars
+                            gsap.fromTo(newProposalChars,
+                                { opacity: 0, y: 20, scale: 0.8, rotationX: 90, transformOrigin: "center center" },
+                                { opacity: 1, y: 0, scale: 1, rotationX: 0, duration: 1.2, ease: "elastic.out(1, 0.5)", stagger: 0.02 }
+                            );
+                            showPostProposalNav(); // Show navigation after "No" interaction
+                        }
+                    });
+                    gsap.to(noButton, { opacity: 0, duration: 0.5, onComplete: () => noButton.remove() });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

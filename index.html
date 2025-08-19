@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scratch Reveal</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Georgia', serif;
+    }
+
+    /* Romantic gradient background */
+    body {
+      background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Floating hearts */
+    .heart {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 0, 100, 0.7);
+      transform: rotate(45deg);
+      animation: floatUp 6s infinite ease-in;
+    }
+    .heart::before,
+    .heart::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 0, 100, 0.7);
+      border-radius: 50%;
+    }
+    .heart::before { top: -10px; left: 0; }
+    .heart::after { left: 10px; top: 0; }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) rotate(45deg) scale(1); opacity: 1; }
+      100% { transform: translateY(-800px) rotate(45deg) scale(0.5); opacity: 0; }
+    }
+
+    /* Bright background content */
+    .content {
+      position: absolute;
+      z-index: 1;
+      text-align: center;
+      max-width: 85%;
+    }
+
+    .content h1 {
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
+      color: #fff;
+      font-weight: bold;
+      text-shadow: 0 0 15px #ff4da6, 0 0 30px #ff1a75, 0 0 45px #ff0066;
+      animation: glow 2s ease-in-out infinite alternate;
+      line-height: 1.4;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #ff80bf, 0 0 20px #ff4da6, 0 0 30px #ff1a75; }
+      to { text-shadow: 0 0 20px #ff4da6, 0 0 40px #ff1a75, 0 0 60px #ff0066; }
+    }
+
+    /* Canvas overlay */
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      cursor: crosshair;
+    }
+
+    /* Surprise button (hidden at first) */
+    #surpriseBtn {
+      margin-top: 30px;
+      padding: 15px 40px;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, #ffd700, #ffae00);
+      color: black;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(30px) scale(0.9);
+      transition: all 0.8s ease;
+      box-shadow: 0 5px 20px rgba(255, 215, 0, 0.6);
+    }
+
+    #surpriseBtn.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating hearts background -->
+  <div class="heart" style="left:10%; animation-delay: 0s;"></div>
+  <div class="heart" style="left:30%; animation-delay: 2s;"></div>
+  <div class="heart" style="left:50%; animation-delay: 4s;"></div>
+  <div class="heart" style="left:70%; animation-delay: 1s;"></div>
+  <div class="heart" style="left:90%; animation-delay: 3s;"></div>
+
+  <div class="content">
+    <h1>✨ That’s how you remove darkness<br>to bring brightness in my life!! 💖</h1>
+    <button id="surpriseBtn" onclick="goToTimeline()">Let's Go for Surprise</button>
+  </div>
+
+  <canvas id="overlay"></canvas>
+
+  <script>
+    const canvas = document.getElementById("overlay");
+    const ctx = canvas.getContext("2d");
+    const btn = document.getElementById("surpriseBtn");
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Add crying indicator text in center (drawn ON canvas so it erases too)
+      ctx.font = `${Math.max(canvas.width, canvas.height) * 0.04}px Georgia`;
+      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("😭 Plzzz remove the darkness of me!!", canvas.width / 2, canvas.height / 2 - 30);
+      ctx.fillText("Plzzz erase the black screen!!! 😭", canvas.width / 2, canvas.height / 2 + 30);
+    }
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    let erasing = false;
+    function getEraserRadius() {
+      return 300; // fixed eraser size
+    }
+
+    function erase(e) {
+      if (!erasing) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX || e.touches[0].clientX) - rect.left;
+      const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+      ctx.globalCompositeOperation = "destination-out";
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, getEraserRadius());
+      gradient.addColorStop(0, "rgba(0,0,0,1)");
+      gradient.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(x, y, getEraserRadius(), 0, Math.PI * 2, false);
+      ctx.fill();
+    }
+
+    function checkCleared() {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let cleared = 0;
+      for (let i = 3; i < imageData.data.length; i += 50) {
+        if (imageData.data[i] === 0) cleared++;
+      }
+      const percentCleared = (cleared / (imageData.data.length / 50)) * 100;
+
+      if (percentCleared > 70) {
+        canvas.style.display = "none";
+        btn.classList.add("show");
+      }
+    }
+
+    canvas.addEventListener("mousedown", () => { erasing = true; });
+    canvas.addEventListener("mouseup", () => { erasing = false; checkCleared(); });
+    canvas.addEventListener("mousemove", erase);
+
+    canvas.addEventListener("touchstart", () => { erasing = true; });
+    canvas.addEventListener("touchend", () => { erasing = false; checkCleared(); });
+    canvas.addEventListener("touchmove", erase);
+
+    function goToTimeline() {
+      window.location.href = "games.html"; // ✅ Now goes to games.html
+    }
+  </script>
+</body>
+</html>
